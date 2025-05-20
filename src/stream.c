@@ -514,7 +514,7 @@ void get_precise_timestamp_freq(int64_t *perf_freq)
 #ifdef WIN32
   LARGE_INTEGER li;
   QueryPerformanceFrequency(&li);
-  perf_freq = li.QuadPart;
+  *perf_freq = li.QuadPart;
 #elif __linux__
   *perf_freq = MILLION;
 #endif
@@ -1452,7 +1452,7 @@ uvc_error_t uvc_stream_get_frame(uvc_stream_handle_t *strmh,
     else
     {
       ts = get_abs_future_time_coarse(timeout_us / 1000);
-      if (ETIMEDOUT == pthread_cond_timedwait(&strmh->cb_cond, &strmh->cb_mutex, &ts))
+      if (ETIMEDOUT == pthread_cond_timedwait(&strmh->cb_cond, &strmh->cb_mutex, (const struct timespec *) &ts))
       {
         UVC_DEBUG("TIMEOUT!");
       }
@@ -1540,7 +1540,7 @@ uvc_error_t uvc_stream_stop(uvc_stream_handle_t *strmh)
   {
     UVC_DEBUG("Flying xfers %d", strmh->flying_xfers);
     ts = get_abs_future_time_coarse(timeout_us / 1000);
-    pthread_cond_timedwait(&strmh->cb_cond, &strmh->cb_mutex, &ts);
+    pthread_cond_timedwait(&strmh->cb_cond, &strmh->cb_mutex, (const struct timespec *) &ts);
   }
   UVC_DEBUG("Done waiting for transfers..");
   // Kick the user thread awake
